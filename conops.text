@@ -1,0 +1,20 @@
+
+Concept of Operations for
+ cranPiTFT
+
+See also
+  https://circuitpython.readthedocs.io/projects/rgb_display/en/latest/index.html
+  https://pillow.readthedocs.io/en/stable/reference/ImageDraw.html
+
+cranPiTFT object
+
+  cranPiTFT.new()
+  cranPiTFT.new(rotation)
+
+    These return the "drawing object" to use? Or add a method to get that?
+
+
+  cranPiTFT.clear() # clear to black
+  cranPiTFT.clear(color)
+
+  cranPiTFT.backlight(backlightOn) # False for off
