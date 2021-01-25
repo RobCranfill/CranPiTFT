@@ -20,18 +20,27 @@ import adafruit_rgb_display.st7789 as st7789
 from adafruit_rgb_display.rgb import color565
 
 class CranPiTFT:
-    def __init__(self, rotation=90): # 90 default for 1.3" display
+    """
+    CranPiTFT encapsulates code to start talking to the LCD display,
+    and wraps a bunch of drawing methods for it.
+    """
+    def __init__(self, rotation=90):
+        """
+        Create an object wrapping the display.
 
+        90 degress is the usual orientation on the Pi.
+
+        """
         self.width  = 240 # for 1.3" display
         self.height = 240 # for 1.3" display
         self.rotation = rotation
 
-        # for convenience, here
+        # for convenience in the following code.
         width = self.width
         height = self.height
         rotation = self.rotation
 
-        # Create the ST7789 display:
+        # Create the ST7789 display
         self.disp = st7789.ST7789(
             board.SPI(), # Set up SPI bus using hardware SPI
             cs = digitalio.DigitalInOut(board.CE0),
@@ -45,15 +54,10 @@ class CranPiTFT:
         )
         disp = self.disp
 
-        # Create blank image for drawing.
+        # Create  blank image for drawing.
         # Make sure to create image with mode 'RGB' for full color.
-        # height = disp.width  # we swap height/width to rotate it to landscape!
-        # width = disp.height
-
         self.image = Image.new("RGB", (width, height))
         image = self.image
-
-        # rotation = 180
 
         # Get drawing object to draw on image.
         self.draw = ImageDraw.Draw(image)
@@ -67,7 +71,6 @@ class CranPiTFT:
         self.clearToBlack()
 
         disp.image(image, rotation)
-
 
 
     def line(self, xy, fill=None, width=0, joint=None):
@@ -99,10 +102,11 @@ class CranPiTFT:
         self.draw.text(self, xy, text, fill, font, anchor, spacing, align, direction,
                     features, language, stroke_width, stroke_fill, embedded_color)
 
-    """
-        Call this when you have drawn all your stuff.
-    """
+
     def updateImage(self):
+        """
+        Call this when you have drawn all your stuff.
+        """
         self.disp.image(self.image, self.rotation)
 
 
