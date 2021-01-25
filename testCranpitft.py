@@ -34,6 +34,7 @@ try:
         time.sleep(1)
         c.clearToBlack()
 except:
-    c.clearToBlack()
-    c.setBacklight(False)
+    pass
+c.clearToBlack()
+c.setBacklight(False)
 print("Done")
