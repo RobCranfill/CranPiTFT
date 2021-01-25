@@ -11,7 +11,7 @@ For now, it only supports the 1.3" display, which is 240x240, but it should be p
 to modify it for the other similar Adafruit displays based on the ST7789 chipset, such as
 the 1.14" display.
 
-For a tutorial on this cool little part, see [Adafruit](https://learn.adafruit.com/adafruit-mini-pitft-135x240-color-tft-add-on-for-raspberry-pi).
+For a tutorial on this cool little part, see [Adafruit](https://learn.adafruit.com/adafruit-mini-pitft-135x240-color-tft-add-on-for-raspberry-pi), which also details the dependencies this module has.
 
 @author robcranfill@robcranfill.net
 
