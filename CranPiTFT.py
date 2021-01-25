@@ -1,9 +1,13 @@
 """
-    CranPiTFT - A library of useful functions for the Adafruit TFT display.
-    Only supports the 1.3" display, st7789
+    CranPiTFT - An object embodying some useful functions for the Adafruit TFT display.
+    For now, only supports the 1.3" display, st7789, 240x240.
     @author robcranfill@robcranfill.net
 
+    For the drawing methods we pass through,
+    @see https://pillow.readthedocs.io/en/stable/reference/ImageDraw.html
 
+    Note that NONE of the pass-thru drawing methods call 'updateImage()' - you must do that after done drawing.
+    (I do this cuz it presumably is faster this way: do all your drawing, then call updateImage().)
     TODO:
 """
 # -*- coding: utf-8 -*-
@@ -18,16 +22,17 @@ from adafruit_rgb_display.rgb import color565
 class CranPiTFT:
     def __init__(self, rotation=90): # 90 default for 1.3" display
 
-        self.width_  = 240 # for 1.3" display
-        self.height_ = 240 # for 1.3" display
-        self.rotation_ = rotation
+        self.width  = 240 # for 1.3" display
+        self.height = 240 # for 1.3" display
+        self.rotation = rotation
 
-        width = self.width_
-        height = self.height_
-        rotation = self.rotation_
+        # for convenience, here
+        width = self.width
+        height = self.height
+        rotation = self.rotation
 
         # Create the ST7789 display:
-        self.disp_ = st7789.ST7789(
+        self.disp = st7789.ST7789(
             board.SPI(), # Set up SPI bus using hardware SPI
             cs = digitalio.DigitalInOut(board.CE0),
             dc = digitalio.DigitalInOut(board.D25),
@@ -35,28 +40,27 @@ class CranPiTFT:
             baudrate = 64000000,
             width = width,
             height = height,
-            x_offset=0, # for 1.3" display
-            y_offset=80 # for 1.3" display
+            x_offset = 0, # for 1.3" display
+            y_offset = 80 # for 1.3" display
         )
-        disp = self.disp_
+        disp = self.disp
 
         # Create blank image for drawing.
         # Make sure to create image with mode 'RGB' for full color.
         # height = disp.width  # we swap height/width to rotate it to landscape!
         # width = disp.height
 
-        self.image_ = Image.new("RGB", (width, height))
-        image = self.image_
+        self.image = Image.new("RGB", (width, height))
+        image = self.image
 
         # rotation = 180
 
         # Get drawing object to draw on image.
-        self.draw_ = ImageDraw.Draw(image)
-        # draw = self.draw_
+        self.draw = ImageDraw.Draw(image)
 
         # Create access to backlight - and turn it on
         backlight = digitalio.DigitalInOut(board.D22)
-        self.backlight_ = backlight
+        self.backlight = backlight
         backlight.switch_to_output()
         backlight.value = True
 
@@ -64,46 +68,42 @@ class CranPiTFT:
 
         disp.image(image, rotation)
 
-    """
-        Note that this does NOT call updateImage - you must do that after done drawing.
-    """
+
+
     def line(self, xy, fill=None, width=0, joint=None):
-        self.draw_.line(xy, fill, width, joint)
+        self.draw.line(xy, fill, width, joint)
 
-    """
-        Note that this does NOT call updateImage - you must do that after done drawing.
-    """
     def rectangle(self, xy, fill=None, outline=None, width=1):
-        self.draw_.rectangle(xy, fill, outline, width)
-
+        self.draw.rectangle(xy, fill, outline, width)
 
     def ellipse(self, xy, fill=None, outline=None, width=1):
-        self.draw_.ellipse(xy, fill=None, outline=None, width=1)
-
+        self.draw.ellipse(xy, fill, outline, width)
 
     def pieslice(self, xy, start, end, fill=None, outline=None, width=1):
-        self.draw_.pieslice(xy, start, end, fill=None, outline=None, width=1)
-        pass
+        self.draw.pieslice(xy, start, end, fill, outline, width)
 
     def point(self, xy, fill=None):
-        pass
+        self.draw.point(self, xy, fill)
 
     def polygon(self, xy, fill=None, outline=None):
-        pass
+        self.draw.polygon(self, xy, fill, outline)
 
     def regular_polygon(self, bounding_circle, n_sides, rotation=0, fill=None, outline=None):
-        pass
+        self.draw.regular_polygon(self, bounding_circle, n_sides, rotation, fill, outline)
 
     def rectangle(self, xy, fill=None, outline=None, width=1):
-        pass
+        self.draw.rectangle(self, xy, fill, outline, width)
 
     def text(self, xy, text, fill=None, font=None, anchor=None, spacing=4, align='left', direction=None,
                 features=None, language=None, stroke_width=0, stroke_fill=None, embedded_color=False):
-        pass
+        self.draw.text(self, xy, text, fill, font, anchor, spacing, align, direction,
+                    features, language, stroke_width, stroke_fill, embedded_color)
 
-
+    """
+        Call this when you have drawn all your stuff.
+    """
     def updateImage(self):
-        self.disp_.image(self.image_, self.rotation_)
+        self.disp.image(self.image, self.rotation)
 
 
     def setBacklight(self, backlightState):
@@ -119,21 +119,21 @@ class CranPiTFT:
         """
 
         # Draw a black filled box to clear the image.
-        self.draw_.rectangle((0, 0, self.width_, self.height_), outline=0, fill=(0, 0, 0))
-        self.disp_.image(self.image_, self.rotation_)
+        self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=(0, 0, 0))
+        self.disp.image(self.image, self.rotation)
 
         # Draw a black filled box to clear the image.
-        self.draw_.rectangle((0, 0, self.width_, self.height_), outline=0, fill=0)
+        self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
 
         # Display image.
-        self.disp_.image(self.image_, self.rotation_)
+        self.disp.image(self.image, self.rotation)
 
     """
     We could do more methods like this... useful? probably not.
     """
     def makeAnX(self):
-        w = self.width_
-        h = self.height_
-        self.draw_.line([(0, 0), (w, h)], fill=(255, 0, 0), width=4)
-        self.draw_.line([(0, h), (w, 0)], fill=(255, 0, 0), width=4)
+        w = self.width
+        h = self.height
+        self.draw.line([(0, 0), (w, h)], fill=(255, 0, 0), width=4)
+        self.draw.line([(0, h), (w, 0)], fill=(255, 0, 0), width=4)
         self.updateImage()
