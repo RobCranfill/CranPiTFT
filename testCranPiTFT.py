@@ -40,11 +40,16 @@ try:
 
         c.updateImage()
 
+        if c.buttonAisPressed():
+            print("Button A pushed - stopping.")
+            break
+
         time.sleep(1)
         c.clearToBlack()
 except:
+    print("Unexpected error:", sys.exc_info()[0])
     pass
-
-c.clearToBlack()
-c.setBacklight(False)
-print("Done")
+finally:
+    c.clearToBlack()
+    c.setBacklight(False)
+    print("Done")

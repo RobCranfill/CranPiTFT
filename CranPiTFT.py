@@ -20,27 +20,18 @@ import adafruit_rgb_display.st7789 as st7789
 from adafruit_rgb_display.rgb import color565
 
 class CranPiTFT:
-    """
-    CranPiTFT encapsulates code to start talking to the LCD display,
-    and wraps a bunch of drawing methods for it.
-    """
-    def __init__(self, rotation=90):
-        """
-        Create an object wrapping the display.
+    def __init__(self, rotation=90): # 90 default for 1.3" display
 
-        90 degress is the usual orientation on the Pi.
-
-        """
         self.width  = 240 # for 1.3" display
         self.height = 240 # for 1.3" display
         self.rotation = rotation
 
-        # for convenience in the following code.
+        # for convenience, here
         width = self.width
         height = self.height
         rotation = self.rotation
 
-        # Create the ST7789 display
+        # Create the ST7789 display:
         self.disp = st7789.ST7789(
             board.SPI(), # Set up SPI bus using hardware SPI
             cs = digitalio.DigitalInOut(board.CE0),
@@ -54,23 +45,58 @@ class CranPiTFT:
         )
         disp = self.disp
 
-        # Create  blank image for drawing.
+        # Create blank image for drawing.
         # Make sure to create image with mode 'RGB' for full color.
+        # height = disp.width  # we swap height/width to rotate it to landscape!
+        # width = disp.height
+
         self.image = Image.new("RGB", (width, height))
         image = self.image
 
-        # Get drawing object to draw on image.
+        # Get the drawing object so we can draw on it.
         self.draw = ImageDraw.Draw(image)
 
-        # Create access to backlight - and turn it on
+        # Create access to the backlight - and turn it on.
+        # TODO: OK to turn on backlight by default?
+        #
         backlight = digitalio.DigitalInOut(board.D22)
         self.backlight = backlight
         backlight.switch_to_output()
         backlight.value = True
 
+        # Get access to the buttons
+        #
+        self._buttonA = digitalio.DigitalInOut(board.D23)
+        self._buttonA.switch_to_input()
+        self._buttonB = digitalio.DigitalInOut(board.D24)
+        self._buttonB.switch_to_input()
+
         self.clearToBlack()
 
         disp.image(image, rotation)
+
+
+    def buttonAisPressed(self):
+        """
+        Get the state of button "A".
+
+        Returns True iff the button is pushed (which is the opposite of the underlying button variable - confusing!)
+        Button A is the button attached to GPIO pin 23;
+        the right-hand button when you view the display board with the writing at the bottom;
+        the upper button if you view the Pi as per the PCB labels.
+        """
+        return not self._buttonA.value
+
+    def buttonBisPressed(self):
+        """
+        Get the state of button "B".
+
+        Returns True iff the button is pushed (which is the opposite of the underlying button variable - confusing!)
+        Button B is the button attached to GPIO pin 24;
+        the left-hand button when you view the display board with the writing at the bottom;
+        the lower button if you view the Pi as per the PCB labels.
+        """
+        return not self._buttonB.value
 
 
     def line(self, xy, fill=None, width=0, joint=None):
@@ -102,11 +128,10 @@ class CranPiTFT:
         self.draw.text(self, xy, text, fill, font, anchor, spacing, align, direction,
                     features, language, stroke_width, stroke_fill, embedded_color)
 
-
-    def updateImage(self):
-        """
+    """
         Call this when you have drawn all your stuff.
-        """
+    """
+    def updateImage(self):
         self.disp.image(self.image, self.rotation)
 
 
