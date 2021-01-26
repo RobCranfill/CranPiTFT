@@ -1,11 +1,11 @@
-# Test/examples CranPiTFT
-#
+"""
+    Demonstration of use of the CranPiTFT library.
+    Draws various shapes. Easy-peasy!
+"""
 from CranPiTFT import CranPiTFT
 import time
 
 c = CranPiTFT(rotation=180)
-# print(c)
-# c.makeAnX()
 
 h = c.height
 w = c.width
@@ -13,7 +13,10 @@ w = c.width
 try:
     for iter in range(10):
 
-        # Using object methods to draw:
+        # Using object methods to draw.
+        # These are wrappers around the corresponding ImageDraw methods.
+        # Be sure to call updateImage() when done.
+        #
         c.line([(0, 0), (w, h)], fill=(255, 0, 0), width=4)
         c.line([(0, h), (w, 0)], fill=(255, 0, 0), width=4)
 
@@ -24,7 +27,13 @@ try:
 
         c.updateImage()
 
-        # Using direct drawing on the ImageDraw object:
+        # Using direct drawing on the ImageDraw object.
+        # Perhaps a bit faster than the other way?
+        #
+        # First, get the ImageDraw object, c.draw.
+        # Then do as thou wilt with it.
+        # Be sure to call updateImage() when done.
+        #
         draw = c.draw
         draw.rectangle((50, h-50, 100, h-100), fill=(255,0,0))
         draw.rectangle((w-50, 50, w-100, 100), fill="#FF00FF")
@@ -35,6 +44,7 @@ try:
         c.clearToBlack()
 except:
     pass
+
 c.clearToBlack()
 c.setBacklight(False)
 print("Done")

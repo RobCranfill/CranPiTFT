@@ -1,5 +1,9 @@
-# -*- coding: utf-8 -*-
+"""
+    Demonstration of use of the CranPiTFT library.
 
+    Based on Adafruit's example code at
+     https://learn.adafruit.com/adafruit-mini-pitft-135x240-color-tft-add-on-for-raspberry-pi/python-stats
+"""
 from CranPiTFT import CranPiTFT
 from PIL import ImageFont
 import time
@@ -8,7 +12,7 @@ import subprocess
 
 c = CranPiTFT(0)
 
-# Load a TTF font.
+# Load a TrueType Font.
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
 font = ImageFont.truetype("DejaVuSans.ttf", 24)
 
