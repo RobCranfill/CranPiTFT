@@ -13,6 +13,10 @@ the 1.14" display.
 
 For a tutorial on this cool little part, see the [Adafruit mini PiTFT tutorial](https://learn.adafruit.com/adafruit-mini-pitft-135x240-color-tft-add-on-for-raspberry-pi), which also details the dependencies this module has.
 
+
+![Example display](exampleDisplay.png)
+
+
 @author robcranfill@robcranfill.net
 
 See the included test/example code for usage examples.
