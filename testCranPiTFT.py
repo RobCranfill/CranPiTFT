@@ -4,14 +4,35 @@
 """
 from CranPiTFT import CranPiTFT
 import time
+import sys
 
 c = CranPiTFT(rotation=180)
+h = c.getHeight()
+w = c.getWidth()
 
-h = c.height
-w = c.width
+
+doImageTest = True
+if doImageTest:
+
+    # Display an image.
+    c.showImageFile("JustMe-240-24.bmp")
+
+    # c.makeAnX()
+    # c.updateImage()
+
+    print("sleeping....")
+    time.sleep(2)
+    print("awake")
+
+    c.clearToBlack()
+    c.setBacklight(False)
+
+
+    sys.exit(1)
+
 
 try:
-    for iter in range(10):
+    for iter in range(8):
 
         # Using object methods to draw.
         # These are wrappers around the corresponding ImageDraw methods.
@@ -34,9 +55,9 @@ try:
         # Then do as thou wilt with it.
         # Be sure to call updateImage() when done.
         #
-        draw = c.draw
-        draw.rectangle((50, h-50, 100, h-100), fill=(255,0,0))
-        draw.rectangle((w-50, 50, w-100, 100), fill="#FF00FF")
+        draw = c.getDraw()
+        draw.rectangle((  50, h-50,   100, h-100), fill=(255,0,0))
+        draw.rectangle((w-50,   50, w-100,   100), fill="#FF00FF")
 
         c.updateImage()
 
@@ -44,11 +65,11 @@ try:
             print("Button A pushed - stopping.")
             break
 
-        time.sleep(1)
+        time.sleep(.5)
         c.clearToBlack()
-except:
-    print("Unexpected error:", sys.exc_info()[0])
-    pass
+# except:
+#     print("Error:", sys.exc_info()[0])
+#     pass
 finally:
     c.clearToBlack()
     c.setBacklight(False)

@@ -22,17 +22,17 @@ from adafruit_rgb_display.rgb import color565
 class CranPiTFT:
     def __init__(self, rotation=90): # 90 default for 1.3" display
 
-        self.width  = 240 # for 1.3" display
-        self.height = 240 # for 1.3" display
-        self.rotation = rotation
+        self._width  = 240 # for 1.3" display
+        self._height = 240 # for 1.3" display
+        self._rotation = rotation
 
         # for convenience, here
-        width = self.width
-        height = self.height
-        rotation = self.rotation
+        width = self._width
+        height = self._height
+        rotation = self._rotation
 
-        # Create the ST7789 display:
-        self.disp = st7789.ST7789(
+        # Create the ST7789 display object.
+        self._disp = st7789.ST7789(
             board.SPI(), # Set up SPI bus using hardware SPI
             cs = digitalio.DigitalInOut(board.CE0),
             dc = digitalio.DigitalInOut(board.D25),
@@ -43,24 +43,25 @@ class CranPiTFT:
             x_offset = 0, # for 1.3" display
             y_offset = 80 # for 1.3" display
         )
-        disp = self.disp
+        disp = self._disp
 
         # Create blank image for drawing.
         # Make sure to create image with mode 'RGB' for full color.
         # height = disp.width  # we swap height/width to rotate it to landscape!
         # width = disp.height
 
-        self.image = Image.new("RGB", (width, height))
-        image = self.image
+        self._image = Image.new("RGB", (width, height))
+        image = self._image
 
         # Get the drawing object so we can draw on it.
-        self.draw = ImageDraw.Draw(image)
+        self._draw = ImageDraw.Draw(image)
+        disp.image(image, rotation)
 
         # Create access to the backlight - and turn it on.
         # TODO: OK to turn on backlight by default?
         #
         backlight = digitalio.DigitalInOut(board.D22)
-        self.backlight = backlight
+        self._backlight = backlight
         backlight.switch_to_output()
         backlight.value = True
 
@@ -73,7 +74,117 @@ class CranPiTFT:
 
         self.clearToBlack()
 
-        disp.image(image, rotation)
+    def getWidth(self):
+        return self._width
+
+    def getHeight(self):
+        return self._height
+
+    def getDraw(self):
+        return self._draw
+
+
+    def showImageFile(self, imageFilePath):
+        """
+        Load the indicated file and show it.
+        """
+        with Image.open(imageFilePath) as image:
+            self._disp.image(image)
+            self._draw = ImageDraw.Draw(image)
+            self._draw.line((0, 0) + image.size, fill=128)
+            self._draw.line((0, image.size[1], image.size[0], 0), fill=128)
+
+    def showImageFileFucked(self, imageFilePath):
+        """
+        Load the indicated file and display it.
+        Supported file types? GIF & PNG are supported; JPEG? others?
+        """
+        #
+        # # Create blank image for drawing.
+        # # Make sure to create image with mode 'RGB' for full color.
+        if self._disp.rotation % 180 == 90:
+            height = self._disp.width  # we swap height/width to rotate it to landscape!
+            width = self._disp.height
+        else:
+            width = self._disp.width
+            height = self._disp.height
+        # image = Image.new("RGB", (width, height))
+        # self.image = image # ???
+        #
+        # # Get drawing object to draw on image.
+        # draw = ImageDraw.Draw(image)
+        # self._draw = draw
+        #
+        # # Draw a black filled box to clear the image.
+        # draw.rectangle((0, 0, width, height), outline=0, fill=(0, 0, 0))
+        # self._disp.image(image)
+        # self._image = image # ???
+
+        image = Image.open(imageFilePath)
+        print("Image opened")
+
+        # Scale the image to the smaller screen dimension
+        image_ratio = image.width / image.height
+        screen_ratio = width / height
+        if screen_ratio < image_ratio:
+            scaled_width = image.width * height // image.height
+            scaled_height = height
+        else:
+            scaled_width = width
+            scaled_height = image.height * width // image.width
+        image = image.resize((scaled_width, scaled_height), Image.BICUBIC)
+        print("Image resized")
+
+        # Crop and center the image
+        x = scaled_width // 2 - width // 2
+        y = scaled_height // 2 - height // 2
+        image = image.crop((x, y, x + width, y + height))
+        self._image = image # ???
+        print("Image cropped")
+
+        # how - if at all - can we draw on the image??
+        # self.makeAnX()
+
+        # self.draw.line([(0, 0), (width, height)], fill=(255, 0, 0), width=4)
+
+        # Display image.
+        self._disp.image(image)
+        print("Image displayed")
+
+
+
+    def updateImage(self):
+        """
+        Call this when you have drawn all your stuff.
+        """
+        self._disp.image(self._image, self._rotation)
+
+
+    def setBacklight(self, backlightState):
+        """
+        Set the backlight as indicated.
+        """
+        self._backlight.value = backlightState
+
+
+    def clearToBlack(self):
+        """
+        Clear the LCD display to all black. Does NOT turn off the backlight.
+        """
+        # Draw a black-filled box to clear the image.
+        self._draw.rectangle((0, 0, self._width, self._height), outline=0, fill=(0, 0, 0))
+        self._disp.image(self._image, self._rotation)
+
+
+    #
+    # We could do more methods like this... useful? probably not.
+    #
+    def makeAnX(self):
+        w = self._width
+        h = self._height
+        self._draw.line([(0, 0), (w, h)], fill=(255, 0, 0), width=4)
+        self._draw.line([(0, h), (w, 0)], fill=(255, 0, 0), width=4)
+        self.updateImage()
 
 
     def buttonAisPressed(self):
@@ -100,69 +211,33 @@ class CranPiTFT:
 
 
     def line(self, xy, fill=None, width=0, joint=None):
-        self.draw.line(xy, fill, width, joint)
+        self._draw.line(xy, fill, width, joint)
 
     def rectangle(self, xy, fill=None, outline=None, width=1):
-        self.draw.rectangle(xy, fill, outline, width)
+        self._draw.rectangle(xy, fill, outline, width)
 
     def ellipse(self, xy, fill=None, outline=None, width=1):
-        self.draw.ellipse(xy, fill, outline, width)
+        self._draw.ellipse(xy, fill, outline, width)
 
     def pieslice(self, xy, start, end, fill=None, outline=None, width=1):
-        self.draw.pieslice(xy, start, end, fill, outline, width)
+        self._draw.pieslice(xy, start, end, fill, outline, width)
 
     def point(self, xy, fill=None):
-        self.draw.point(self, xy, fill)
+        self._draw.point(self, xy, fill)
 
     def polygon(self, xy, fill=None, outline=None):
-        self.draw.polygon(self, xy, fill, outline)
+        self._draw.polygon(self, xy, fill, outline)
 
     def regular_polygon(self, bounding_circle, n_sides, rotation=0, fill=None, outline=None):
-        self.draw.regular_polygon(self, bounding_circle, n_sides, rotation, fill, outline)
+        self._draw.regular_polygon(self, bounding_circle, n_sides, rotation, fill, outline)
 
     def rectangle(self, xy, fill=None, outline=None, width=1):
-        self.draw.rectangle(self, xy, fill, outline, width)
+        self._draw.rectangle(self, xy, fill, outline, width)
 
     def text(self, xy, text, fill=None, font=None, anchor=None, spacing=4, align='left', direction=None,
                 features=None, language=None, stroke_width=0, stroke_fill=None, embedded_color=False):
-        self.draw.text(self, xy, text, fill, font, anchor, spacing, align, direction,
+        self._draw.text(self, xy, text, fill, font, anchor, spacing, align, direction,
                     features, language, stroke_width, stroke_fill, embedded_color)
 
-    """
-        Call this when you have drawn all your stuff.
-    """
-    def updateImage(self):
-        self.disp.image(self.image, self.rotation)
-
-
-    def setBacklight(self, backlightState):
-        """
-        Set the backlight as indicated.
-        """
-        self.backlight.value = backlightState
-
-
-    def clearToBlack(self):
-        """
-        Clear the LCD display to all black. Does NOT turn off the backlight.
-        """
-
-        # Draw a black filled box to clear the image.
-        self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=(0, 0, 0))
-        self.disp.image(self.image, self.rotation)
-
-        # Draw a black filled box to clear the image.
-        self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
-
-        # Display image.
-        self.disp.image(self.image, self.rotation)
-
-    """
-    We could do more methods like this... useful? probably not.
-    """
-    def makeAnX(self):
-        w = self.width
-        h = self.height
-        self.draw.line([(0, 0), (w, h)], fill=(255, 0, 0), width=4)
-        self.draw.line([(0, h), (w, 0)], fill=(255, 0, 0), width=4)
-        self.updateImage()
+"""
+"""
