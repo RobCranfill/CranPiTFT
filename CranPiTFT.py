@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 """
     CranPiTFT - An object embodying some useful functions for the Adafruit TFT display.
     For now, only supports the 1.3" display, st7789, 240x240.
@@ -8,9 +10,10 @@
 
     Note that NONE of the pass-thru drawing methods call 'updateImage()' - you must do that after done drawing.
     (I do this cuz it presumably is faster this way: do all your drawing, then call updateImage().)
+
     TODO:
+
 """
-# -*- coding: utf-8 -*-
 
 import time
 import digitalio
@@ -84,15 +87,25 @@ class CranPiTFT:
         return self._draw
 
 
-    def showImageFile(self, imageFilePath):
+    def showImageFile(self, imageFilePath, rotation=0):
         """
         Load the indicated file and show it.
+
+        This replaces this object's old image.
         """
+        self._rotation = rotation
         with Image.open(imageFilePath) as image:
-            self._disp.image(image)
+            self._image = image
             self._draw = ImageDraw.Draw(image)
+
             self._draw.line((0, 0) + image.size, fill=128)
             self._draw.line((0, image.size[1], image.size[0], 0), fill=128)
+            self._draw.rectangle((70, 70, 170, 170), fill=(255,0,0))
+
+            self._disp.image(image, self._rotation)
+            print(f"   show: Draw is {self._draw}")
+            print(f"   show: Disp is {self._disp}")
+
 
     def showImageFileFucked(self, imageFilePath):
         """
@@ -184,8 +197,13 @@ class CranPiTFT:
         h = self._height
         self._draw.line([(0, 0), (w, h)], fill=(255, 0, 0), width=4)
         self._draw.line([(0, h), (w, 0)], fill=(255, 0, 0), width=4)
-        self.updateImage()
 
+        print(f"makeAnX: Draw is {self._draw}")
+        print(f"makeAnX: Disp is {self._disp}")
+
+        # these should be equiv ??
+        # self.updateImage()
+        self._disp.image(self._image, self._rotation)
 
     def buttonAisPressed(self):
         """

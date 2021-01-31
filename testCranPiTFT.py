@@ -10,28 +10,36 @@ c = CranPiTFT(rotation=180)
 h = c.getHeight()
 w = c.getWidth()
 
+# constructor does this already:
+#   c.setBacklight(True)
 
 doImageTest = True
 if doImageTest:
 
     # Display an image.
+    # This updates the draw object and displays the image.
     c.showImageFile("JustMe-240-24.bmp")
 
-    # c.makeAnX()
-    # c.updateImage()
+    makeAnX = False
+    if makeAnX:
+        c.makeAnX()
+        c.updateImage()
 
     print("sleeping....")
     time.sleep(2)
     print("awake")
 
+    print("Clearing and turning off BL")
     c.clearToBlack()
     c.setBacklight(False)
 
-
-    sys.exit(1)
-
+    # print("Exiting early")
+    # sys.exit(1)
 
 try:
+
+    c.setBacklight(True)
+
     for iter in range(8):
 
         # Using object methods to draw.
